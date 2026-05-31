@@ -1,0 +1,140 @@
+name: buildkite
+version: 0.1.0
+dsl_version: 3
+backend: http
+base_url: "https://api.buildkite.com/v2"
+
+inputs:
+  ORG_SLUG:
+    kind: variable
+    hint: "Your Buildkite organization slug (visible in your Buildkite URL, e.g. 'acme-corp')"
+  API_TOKEN:
+    kind: secret
+    hint: "Buildkite API token with read_builds and read_pipelines scopes — https://buildkite.com/user/api-access-tokens"
+
+auth:
+  type: HeaderAuth
+  headers:
+    - name: Authorization
+      from: template
+      template: "Bearer {{input.API_TOKEN}}"
+
+test_queries:
+  - SELECT number, state, branch, pipeline__name FROM buildkite.builds LIMIT 5
+  - SELECT slug, name, default_branch FROM buildkite.pipelines LIMIT 5
+
+tables:
+  - name: builds
+    description: >
+      CI/CD build runs across all pipelines. Each row is one build with its
+      state (running, passed, failed, cancelled), branch, commit SHA, creator,
+      and timing. JOIN with github.pull_requests ON commit SHA to correlate
+      deploys with code changes.
+    request:
+      method: GET
+      path: /organizations/{{input.ORG_SLUG}}/builds
+    response:
+      rows_path: []
+    pagination:
+      mode: link_header
+    columns:
+      - name: id
+        type: Utf8
+      - name: number
+        type: Int64
+      - name: state
+        type: Utf8
+      - name: branch
+        type: Utf8
+      - name: commit
+        type: Utf8
+      - name: message
+        type: Utf8
+      - name: web_url
+        type: Utf8
+      - name: created_at
+        type: Timestamp
+      - name: started_at
+        type: Timestamp
+      - name: finished_at
+        type: Timestamp
+      - name: pipeline__id
+        type: Utf8
+      - name: pipeline__slug
+        type: Utf8
+      - name: pipeline__name
+        type: Utf8
+      - name: creator__name
+        type: Utf8
+      - name: creator__email
+        type: Utf8
+
+  - name: pipelines
+    description: >
+      Buildkite pipelines (projects). Each row is one pipeline with its slug,
+      name, default branch, and repository URL. Use to discover pipeline slugs
+      for filtering builds.
+    request:
+      method: GET
+      path: /organizations/{{input.ORG_SLUG}}/pipelines
+    response:
+      rows_path: []
+    pagination:
+      mode: link_header
+    columns:
+      - name: id
+        type: Utf8
+      - name: slug
+        type: Utf8
+      - name: name
+        type: Utf8
+      - name: description
+        type: Utf8
+      - name: repository
+        type: Utf8
+      - name: default_branch
+        type: Utf8
+      - name: web_url
+        type: Utf8
+      - name: created_at
+        type: Timestamp
+      - name: builds_count
+        type: Int64
+      - name: running_builds_count
+        type: Int64
+      - name: scheduled_builds_count
+        type: Int64
+
+  - name: jobs
+    description: >
+      Individual job steps within a build. Each row is one job (step) with its
+      exit status, log output URL, and timing. Use to identify which specific
+      step failed in a broken build.
+    request:
+      method: GET
+      path: /organizations/{{input.ORG_SLUG}}/builds
+    response:
+      rows_path: [jobs]
+    pagination:
+      mode: link_header
+    columns:
+      - name: id
+        type: Utf8
+      - name: type
+        type: Utf8
+      - name: name
+        type: Utf8
+      - name: state
+        type: Utf8
+      - name: exit_status
+        type: Int64
+      - name: web_url
+        type: Utf8
+      - name: log_url
+        type: Utf8
+      - name: started_at
+        type: Timestamp
+      - name: finished_at
+        type: Timestamp
+      - name: agent__name
+        type: Utf8

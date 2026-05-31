@@ -3,7 +3,16 @@
 import { HexagonIcon, User } from 'lucide-react'
 import { SOURCE_META } from '@/lib/utils'
 import DataTable from './DataTable'
-import type { Message } from '@/types'
+import IncidentTimeline from './IncidentTimeline'
+import type { Message, DataRow } from '@/types'
+
+const TIMELINE_KEYS = ['created_at', 'merged_at', 'first_seen', 'started_at', 'triggered_at', 'resolved_at']
+
+function looksLikeTimeline(rows: DataRow[]): boolean {
+  if (rows.length < 2) return false
+  const keys = Object.keys(rows[0])
+  return TIMELINE_KEYS.some(k => keys.includes(k))
+}
 
 interface MessageBubbleProps {
   message: Message
@@ -85,9 +94,11 @@ export default function MessageBubble({ message, onSQLClick }: MessageBubbleProp
             {renderMarkdownLike(message.content)}
           </div>
 
-          {/* Data table if query result */}
+          {/* Timeline or table depending on data shape */}
           {queryResult && queryResult.rows.length > 0 && (
-            <DataTable rows={queryResult.rows} />
+            looksLikeTimeline(queryResult.rows)
+              ? <IncidentTimeline rows={queryResult.rows} />
+              : <DataTable rows={queryResult.rows} />
           )}
 
           {/* Source pills + SQL link */}

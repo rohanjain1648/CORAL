@@ -34,5 +34,9 @@ export const SOURCE_META: Record<string, { label: string; color: string; bg: str
   slack:      { label: 'Slack',      color: '#f472b6', bg: 'rgba(244,114,182,0.08)' },
   jira:       { label: 'Jira',       color: '#38bdf8', bg: 'rgba(56,189,248,0.08)'  },
   confluence: { label: 'Confluence', color: '#60a5fa', bg: 'rgba(96,165,250,0.08)'  },
-  buildkite:  { label: 'Buildkite',  color: '#fb923c', bg: 'rgba(251,146,60,0.08)'  },
+  buildkite:    { label: 'Buildkite',    color: '#fb923c', bg: 'rgba(251,146,60,0.08)'  },
+  launchdarkly: { label: 'LaunchDarkly', color: '#fbbf24', bg: 'rgba(251,191,36,0.08)'  },
+  posthog:      { label: 'PostHog',      color: '#f97316', bg: 'rgba(249,115,22,0.08)'  },
+  beehiiv:      { label: 'Beehiiv',      color: '#22c55e', bg: 'rgba(34,197,94,0.08)'   },
+  dub:          { label: 'Dub',          color: '#3b82f6', bg: 'rgba(59,130,246,0.08)'  },
 }

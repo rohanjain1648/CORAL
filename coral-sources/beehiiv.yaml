@@ -1,0 +1,155 @@
+# Beehiiv custom source spec for Coral
+# Newsletter platform: subscribers, posts, publications, analytics
+#
+# Setup:
+#   coral source add --file ./coral-sources/beehiiv.yaml
+#
+# Get your API key:
+#   app.beehiiv.com → Settings → Integrations → API → Create API Key
+#
+# Get your publication ID:
+#   app.beehiiv.com → Settings → Publication Details → Publication ID
+#   (looks like: pub_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+
+name: beehiiv
+version: 0.1.0
+dsl_version: 3
+backend: http
+base_url: "https://api.beehiiv.com/v2"
+
+inputs:
+  PUBLICATION_ID:
+    kind: variable
+    hint: "Your Beehiiv publication ID — app.beehiiv.com > Settings > Publication Details (e.g. pub_abc123...)"
+  API_KEY:
+    kind: secret
+    hint: "Beehiiv API key — app.beehiiv.com > Settings > Integrations > API > Create API Key"
+
+auth:
+  type: HeaderAuth
+  headers:
+    - name: Authorization
+      from: template
+      template: "Bearer {{input.API_KEY}}"
+
+test_queries:
+  - SELECT email, status, created FROM beehiiv.subscriptions LIMIT 5
+  - SELECT title, publish_date, stats__total_opens FROM beehiiv.posts LIMIT 5
+
+tables:
+  - name: subscriptions
+    description: >
+      All newsletter subscribers with status (active, inactive, unsubscribed),
+      subscription tier (free/premium), acquisition UTM parameters, and signup
+      timestamps. JOIN with dub.links ON utm_campaign to connect link campaigns
+      to subscriber growth.
+    request:
+      method: GET
+      path: /publications/{{input.PUBLICATION_ID}}/subscriptions
+    response:
+      rows_path: [data]
+    pagination:
+      mode: link_header
+    columns:
+      - name: id
+        type: Utf8
+      - name: email
+        type: Utf8
+      - name: status
+        type: Utf8
+        description: "active | inactive | unsubscribed"
+      - name: created
+        type: Timestamp
+      - name: subscription_tier
+        type: Utf8
+        description: "free | premium"
+      - name: utm_source
+        type: Utf8
+      - name: utm_medium
+        type: Utf8
+      - name: utm_campaign
+        type: Utf8
+      - name: utm_channel
+        type: Utf8
+      - name: referring_site
+        type: Utf8
+      - name: stripe_customer_id
+        type: Utf8
+
+  - name: posts
+    description: >
+      Newsletter posts (issues) with full engagement stats: total sent, opens,
+      unique opens, clicks, conversions. Use to measure content performance and
+      correlate with subscriber growth or product launches.
+    request:
+      method: GET
+      path: /publications/{{input.PUBLICATION_ID}}/posts
+    response:
+      rows_path: [data]
+    pagination:
+      mode: link_header
+    columns:
+      - name: id
+        type: Utf8
+      - name: title
+        type: Utf8
+      - name: slug
+        type: Utf8
+      - name: status
+        type: Utf8
+        description: "draft | confirmed | archived"
+      - name: audience
+        type: Utf8
+        description: "free | premium | all"
+      - name: publish_date
+        type: Timestamp
+      - name: displayed_date
+        type: Utf8
+      - name: subject
+        type: Utf8
+      - name: preview_text
+        type: Utf8
+      - name: stats__total_sent
+        type: Int64
+      - name: stats__total_opens
+        type: Int64
+      - name: stats__unique_opens
+        type: Int64
+      - name: stats__open_rate
+        type: Float64
+      - name: stats__total_clicks
+        type: Int64
+      - name: stats__unique_clicks
+        type: Int64
+      - name: stats__click_through_rate
+        type: Float64
+      - name: stats__total_conversions
+        type: Int64
+      - name: stats__total_unsubscribes
+        type: Int64
+
+  - name: publications
+    description: >
+      Your Beehiiv publications (newsletters). Contains name, subscriber count,
+      created date, and web address. Usually just one row unless you manage
+      multiple publications.
+    request:
+      method: GET
+      path: /publications
+    response:
+      rows_path: [data]
+    pagination:
+      mode: link_header
+    columns:
+      - name: id
+        type: Utf8
+      - name: name
+        type: Utf8
+      - name: hostname
+        type: Utf8
+      - name: created
+        type: Timestamp
+      - name: active_subscription_count
+        type: Int64
+      - name: total_subscription_count
+        type: Int64

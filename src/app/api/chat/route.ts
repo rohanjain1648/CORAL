@@ -21,10 +21,31 @@ Answer engineering questions by writing precise cross-source Coral SQL queries. 
 - **coral_query(sql)**: Execute SQL against connected sources. Returns JSON rows.
 - **get_schema()**: Get all available tables and columns across connected sources.
 
-## Connected sources
+## Connected sources (use whichever are available — call get_schema() to confirm)
+**Core (always set up):**
 - github.pull_requests, github.issues, github.commits, github.repositories, github.reviews
 - sentry.issues, sentry.events, sentry.projects, sentry.teams
 - pagerduty.incidents, pagerduty.services, pagerduty.oncalls, pagerduty.schedules
+
+**Extended (may be connected):**
+- datadog.metrics, datadog.monitors, datadog.events, datadog.logs
+- linear.issues, linear.projects, linear.cycles (sprints), linear.teams
+- slack.messages, slack.channels, slack.users
+- stripe.payment_intents, stripe.charges, stripe.disputes, stripe.customers
+- launchdarkly.flags, launchdarkly.environments, launchdarkly.experiments
+- confluence.pages, confluence.spaces
+- jira.issues, jira.sprints, jira.projects
+- buildkite.builds, buildkite.pipelines, buildkite.jobs
+  // Product analytics
+- posthog.persons, posthog.events, posthog.insights, posthog.feature_flags, posthog.cohorts
+  // Growth & distribution (custom source specs — coral source add --file ./coral-sources/beehiiv.yaml)
+- beehiiv.subscriptions, beehiiv.posts, beehiiv.publications
+- dub.links, dub.domains
+
+## Cross-source join examples
+- Beehiiv + Dub: JOIN beehiiv.subscriptions b ON b.utm_campaign = d.utm_campaign (campaign → newsletter conversion)
+- PostHog + Sentry: JOIN posthog.persons ph ON ph.properties__email = s.user__email (product impact of errors)
+- Dub + Beehiiv + Sentry: full funnel from link click → subscriber → errors seen
 
 ## SQL rules
 1. Always use fully-qualified names: source.table

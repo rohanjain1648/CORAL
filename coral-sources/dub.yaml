@@ -1,0 +1,130 @@
+# Dub.co custom source spec for Coral
+# Link management: short links, click analytics, conversions, UTM tracking
+#
+# Setup:
+#   coral source add --file ./coral-sources/dub.yaml
+#
+# Get your API key:
+#   dub.co → Account Settings → API Keys → Create new key
+#
+# Get your workspace slug:
+#   dub.co → your workspace URL: app.dub.co/{workspace-slug}
+
+name: dub
+version: 0.1.0
+dsl_version: 3
+backend: http
+base_url: "https://api.dub.co"
+
+inputs:
+  WORKSPACE_ID:
+    kind: variable
+    hint: "Your Dub workspace slug — visible in the URL: app.dub.co/{workspace-slug}"
+  API_KEY:
+    kind: secret
+    hint: "Dub API key — dub.co > Account Settings > API Keys > Create new key"
+
+auth:
+  type: HeaderAuth
+  headers:
+    - name: Authorization
+      from: template
+      template: "Bearer {{input.API_KEY}}"
+
+test_queries:
+  - SELECT domain, key, clicks, url, utm_campaign FROM dub.links LIMIT 5
+  - SELECT domain, key, saleAmount, leads, conversions FROM dub.links WHERE saleAmount > 0 LIMIT 10
+
+tables:
+  - name: links
+    description: >
+      All short links with full analytics: clicks, leads, sales revenue,
+      conversions, UTM parameters, and timestamps. Each row is one short link.
+      JOIN with beehiiv.subscriptions ON utm_campaign to connect campaigns to
+      newsletter subscriber growth. JOIN with stripe.charges ON metadata to
+      correlate link clicks with payments.
+    request:
+      method: GET
+      path: /links?workspaceId={{input.WORKSPACE_ID}}&pageSize=100
+    response:
+      rows_path: []
+    pagination:
+      mode: link_header
+    columns:
+      - name: id
+        type: Utf8
+      - name: domain
+        type: Utf8
+      - name: key
+        type: Utf8
+        description: "The slug part of the short link (e.g. 'launch' in dub.sh/launch)"
+      - name: url
+        type: Utf8
+        description: "Destination URL"
+      - name: shortLink
+        type: Utf8
+        description: "Full short URL (e.g. https://dub.sh/launch)"
+      - name: title
+        type: Utf8
+      - name: description
+        type: Utf8
+      - name: clicks
+        type: Int64
+      - name: leads
+        type: Int64
+      - name: sales
+        type: Int64
+      - name: saleAmount
+        type: Float64
+        description: "Total sales revenue in cents"
+      - name: conversions
+        type: Int64
+      - name: lastClicked
+        type: Timestamp
+      - name: createdAt
+        type: Timestamp
+      - name: updatedAt
+        type: Timestamp
+      - name: utm_source
+        type: Utf8
+      - name: utm_medium
+        type: Utf8
+      - name: utm_campaign
+        type: Utf8
+      - name: utm_term
+        type: Utf8
+      - name: utm_content
+        type: Utf8
+      - name: archived
+        type: Boolean
+      - name: expiresAt
+        type: Timestamp
+      - name: userId
+        type: Utf8
+
+  - name: domains
+    description: >
+      Custom domains registered in your Dub workspace.
+      Use to understand which branded domains are being used for campaigns.
+    request:
+      method: GET
+      path: /domains?workspaceId={{input.WORKSPACE_ID}}
+    response:
+      rows_path: []
+    columns:
+      - name: id
+        type: Utf8
+      - name: slug
+        type: Utf8
+      - name: verified
+        type: Boolean
+      - name: primary
+        type: Boolean
+      - name: archived
+        type: Boolean
+      - name: clicks
+        type: Int64
+      - name: createdAt
+        type: Timestamp
+      - name: updatedAt
+        type: Timestamp

@@ -84,7 +84,7 @@ export function checkCoralAvailable(): boolean {
 
 function extractSources(sql: string): string[] {
   const pattern =
-    /\b(github|sentry|pagerduty|datadog|stripe|linear|slack|jira|confluence|launchdarkly|buildkite|grafana|intercom|posthog)\b/gi
+    /\b(github|sentry|pagerduty|datadog|stripe|linear|slack|jira|confluence|launchdarkly|buildkite|grafana|intercom|posthog|beehiiv|dub)\b/gi
   const matches = sql.match(pattern) ?? []
   return [...new Set(matches.map(s => s.toLowerCase()))]
 }
