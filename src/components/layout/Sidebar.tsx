@@ -17,10 +17,10 @@ export default function Sidebar() {
 
   return (
     <aside
-      className="flex flex-col items-center py-4 gap-1 z-20"
+      className="flex flex-col items-center py-4 gap-0.5 z-20"
       style={{
-        width: 'var(--nx-sidebar-w)',
-        background: 'rgba(13,13,23,0.9)',
+        width: 72,
+        background: 'rgba(13,13,23,0.92)',
         borderRight: '1px solid var(--nx-border)',
         backdropFilter: 'blur(20px)',
         flexShrink: 0,
@@ -29,25 +29,22 @@ export default function Sidebar() {
       {/* Logo */}
       <Link
         href="/"
-        className="mb-5 flex items-center justify-center"
-        style={{ width: 36, height: 36 }}
+        style={{ width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}
         title="NEXUS Home"
       >
-        <div
-          className="flex items-center justify-center rounded-lg"
-          style={{
-            width: 34,
-            height: 34,
-            background: 'linear-gradient(135deg, #6366f1, #06b6d4)',
-            boxShadow: '0 0 20px rgba(99,102,241,0.4)',
-          }}
-        >
-          <HexagonIcon size={18} strokeWidth={2.5} color="white" />
+        <div style={{
+          width: 34, height: 34, borderRadius: 10,
+          background: 'linear-gradient(135deg, #6366f1, #06b6d4)',
+          boxShadow: '0 0 20px rgba(99,102,241,0.4)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'box-shadow 0.2s',
+        }}>
+          <HexagonIcon size={17} strokeWidth={2.5} color="white" />
         </div>
       </Link>
 
       {/* Divider */}
-      <div style={{ width: 28, height: 1, background: 'var(--nx-border)', marginBottom: 8 }} />
+      <div style={{ width: 28, height: 1, background: 'var(--nx-border)', marginBottom: 10 }} />
 
       {/* Nav links */}
       {NAV.map(({ href, icon: Icon, label }) => {
@@ -58,30 +55,33 @@ export default function Sidebar() {
             href={href}
             title={label}
             className={cn(
-              'relative flex items-center justify-center rounded-xl transition-all duration-150',
-              active
-                ? 'text-white'
-                : 'text-[var(--nx-muted)] hover:text-[var(--nx-text-2)]'
+              'relative flex flex-col items-center justify-center gap-1 rounded-xl transition-all duration-150',
+              active ? 'text-white' : 'text-[var(--nx-muted)] hover:text-[var(--nx-text-2)]'
             )}
             style={{
-              width: 40,
-              height: 40,
-              background: active ? 'rgba(99,102,241,0.18)' : 'transparent',
-              boxShadow: active ? '0 0 16px rgba(99,102,241,0.2)' : 'none',
+              width: 52, height: 52,
+              background: active ? 'rgba(99,102,241,0.16)' : 'transparent',
+              boxShadow: active ? '0 0 18px rgba(99,102,241,0.18)' : 'none',
             }}
           >
+            {/* Active left-bar indicator */}
             {active && (
-              <div
-                className="absolute left-0 top-1/2 -translate-y-1/2 rounded-full"
-                style={{
-                  width: 3,
-                  height: 20,
-                  background: 'linear-gradient(180deg, #6366f1, #06b6d4)',
-                  left: -1,
-                }}
-              />
+              <div style={{
+                position: 'absolute', left: -1, top: '50%',
+                transform: 'translateY(-50%)',
+                width: 3, height: 22, borderRadius: 99,
+                background: 'linear-gradient(180deg, #818cf8, #06b6d4)',
+              }} />
             )}
-            <Icon size={17} strokeWidth={active ? 2.5 : 2} />
+            <Icon size={16} strokeWidth={active ? 2.5 : 2} />
+            <span style={{
+              fontSize: 9.5, fontWeight: 600,
+              letterSpacing: '0.04em', lineHeight: 1,
+              color: active ? 'var(--nx-indigo-light)' : 'inherit',
+              textTransform: 'uppercase',
+            }}>
+              {label}
+            </span>
           </Link>
         )
       })}
